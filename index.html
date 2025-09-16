@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Caramelo IA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e6ddd5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            touch-action: manipulation;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 1.06;
+            z-index: -1;
+        }
+        
+        /* ---------------------------------------------------- */
+        /* CORREÇÃO: Posicionamento fixo para o cabeçalho e rodapé */
+        /* ---------------------------------------------------- */
+        .chat-header {
+            background: #f0f0f0;
+            padding: 15px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+            min-height: 70px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 10;
+            
+            /* Novo: Fixa o cabeçalho no topo */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+        }
+        
+        .chat-messages {
+            /* Novo: Ajusta o espaçamento para evitar que as mensagens fiquem por baixo dos elementos fixos */
+            padding: 85px 10px 150px 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background: transparent;
+            
+            /* Novo: Permite que a área de mensagens cresça para ocupar todo o espaço */
+            flex-grow: 1;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 10px 12px;
+            background-color: #f0f0f0;
+            border-top: 1px solid #e0e0e0;
+            align-items: center;
+            min-height: 62px;
+            z-index: 10;
+            
+            /* Novo: Fixa a área de input no rodapé */
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+        }
+        
+        /* Ajustes adicionais para o chat */
+        .back-button {
+            background: none;
+            border: none;
+            color: #075e54;
+            font-size: 1.4em;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .profile-pic {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #075e54;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            margin-right: 15px;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #000;
+            margin-bottom: 3px;
+        }
+
+        .profile-status {
+            font-size: 0.85em;
+            color: #667781;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+            color: #54656f;
+            font-size: 1.2em;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 7.5px;
+            line-height: 1.4;
+            position: relative;
+            animation: fadeIn 0.2s ease;
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #d9fdd3;
+            border-top-right-radius: 0;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: #fff;
+            border-top-left-radius: 0;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        }
+
+        .message-time {
+            font-size: 0.65em;
+            color: #667781;
+            text-align: right;
+            margin-top: 3px;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: bottom;
+        }
+        
+        /* CORREÇÃO: Nova classe para o indicador de digitação */
+        .typing-indicator {
+            display: flex;
+            align-self: flex-start;
+            background: #fff;
+            padding: 10px 13px;
+            border-radius: 18px;
+            margin: 5px 0 10px 10px;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            width: auto;
+        }
+
+        .typing-indicator span {
+            height: 7px;
+            width: 7px;
+            float: left;
+            margin: 0 2px;
+            background-color: #9E9EA1;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+
+        .typing-indicator span:nth-of-type(1) {
+            animation: typing 1s infinite;
+        }
+
+        .typing-indicator span:nth-of-type(2) {
+            animation: typing 1s infinite 0.33s;
+        }
+
+        .typing-indicator span:nth-of-type(3) {
+            animation: typing 1s infinite 0.66s;
+        }
+
+        @keyframes typing {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .input-action {
+            color: #54656f;
+            font-size: 1.3em;
+            margin: 0 8px;
+            flex-shrink: 0;
+        }
+
+        .chat-input-wrapper {
+            flex: 1;
+            background: #fff;
+            border-radius: 21px;
+            display: flex;
+            align-items: center;
+            padding: 0 5px;
+            margin: 0 5px;
+            border: 1px solid #e0e0e0;
+            min-height: 42px;
+        }
+
+        .emoji-button {
+            background: none;
+            border: none;
+            color: #54656f;
+            font-size: 1.2em;
+            padding: 8px 5px 8px 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 10px 5px;
+            background: transparent;
+            max-height: 120px;
+            overflow-y: auto;
+            resize: none;
+            min-height: 20px;
+        }
+
+        .mic-button {
+            background: none;
+            border: none;
+            color: #54656f;
+            font-size: 1.2em;
+            padding: 8px 12px 8px 5px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+        }
+
+        .send-button {
+            background: #075e54;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1em;
+            margin-left: 5px;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            display: none;
+        }
+
+        .send-button.active {
+            display: flex;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 6px;
+            height: 14px;
+            background-color: #333;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .message { max-width: 85%; font-size: 15px; }
+            .chat-header { padding: 15px 12px; }
+            .profile-pic { width: 40px; height: 40px; font-size: 1.3em; }
+            .chat-input-container { padding: 8px 10px; }
+            .input-action { margin: 0 6px; font-size: 1.2em; }
+            .chat-input-wrapper { margin: 0 4px; }
+        }
+
+        @media (max-width: 480px) {
+            .message { max-width: 90%; }
+            .header-icons { gap: 12px; }
+            .input-action { font-size: 1.1em; margin: 0 4px; }
+            .emoji-button, .mic-button { padding: 6px 3px; }
+            .send-button { width: 32px; height: 32px; font-size: 1em; }
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.3);
+        }
+
+        .input-placeholder {
+            position: absolute;
+            color: #999;
+            pointer-events: none;
+            top: 50%;
+            left: 50px;
+            transform: translateY(-50%);
+        }
+
+        .profile-pic img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <button class="back-button">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="profile-pic">
+            <img src="https://www.freeiconspng.com/uploads/dog-png-32.jpg" alt="IA Au Au">
+        </div>
+        <div class="profile-info">
+            <div class="profile-name">Caramelo IA</div>
+            <div class="profile-status" id="status">Online</div>
+        </div>
+        <div class="header-icons">
+          
+           <!-- <i class="fas fa-bone"></i> -->
+            <i class="fas fa-ellipsis-vertical"></i>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chat-messages">
+        <div class="message ai-message">
+            Oi! Sou seu caramelo virtual. O que você precisa hoje meu patrão?
+            <span class="message-time" id="timestamp">12:00</span>
+        </div>
+    </div>
+    
+    <div class="chat-input-container">
+        <div class="input-action">
+      <!--      <i class="fas fa-plus-circle"></i> -->
+        </div>
+        <div class="chat-input-wrapper" style="position: relative;">
+          <!--  <button class="emoji-button">
+                <i class="far fa-smile"></i> -->
+            </button>
+            <div class="chat-input" id="user-input" contenteditable="true"></div>
+            <div class="input-placeholder" id="input-placeholder">Digite uma mensagem</div>
+            <button class="mic-button" id="mic-button">
+                <i class="fas fa-paw"></i>
+            </button>
+        </div>
+        <button class="send-button" id="send-button">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+        <div class="input-action">
+            <i class="fas fa-dog"></i>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chat-messages');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const micButton = document.getElementById('mic-button');
+            const inputPlaceholder = document.getElementById('input-placeholder');
+            const statusIndicator = document.getElementById('status');
+            
+            // Inicialmente esconder o botão de enviar e mostrar o de microfone
+            sendButton.style.display = 'none';
+            micButton.style.display = 'flex';
+            inputPlaceholder.style.display = 'block';
+            
+            // Verificar se o conteúdo está vazio para mostrar o placeholder
+            function checkInput() {
+                if (userInput.textContent.trim() === '') {
+                    micButton.style.display = 'flex';
+                    sendButton.style.display = 'none';
+                    inputPlaceholder.style.display = 'block';
+                } else {
+                    micButton.style.display = 'none';
+                    sendButton.style.display = 'flex';
+                    inputPlaceholder.style.display = 'none';
+                }
+            }
+            
+            // Inicializar
+            checkInput();
+            
+            // Observar mudanças no contenteditable
+            userInput.addEventListener('input', checkInput);
+            
+            // Focar no input quando clicar na área de placeholder
+            inputPlaceholder.addEventListener('click', function() {
+                userInput.focus();
+            });
+            
+            // Função para gerar uma sequência aleatória de "Au Au Au"
+            function generateRandomAu() {
+                const count = Math.floor(Math.random() * 15) + 10;
+                let result = '';
+                
+                const dogEmojis = ['🐕', '🐩', '🐶', '🦴', '🐾'];
+                
+                for (let i = 0; i < count; i++) {
+                    if (Math.random() < 0.4) {
+                        result += 'AU ';
+                    } else {
+                        result += 'Au ';
+                    }
+                    
+                    if (Math.random() < 0.1) {
+                        result += dogEmojis[Math.floor(Math.random() * dogEmojis.length)] + ' ';
+                    }
+                }
+                
+                return result.trim();
+            }
+            
+            // Função para adicionar mensagem do usuário
+            function addUserMessage(message) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'user-message');
+                messageElement.textContent = message;
+                
+                const timestamp = document.createElement('span');
+                timestamp.classList.add('message-time');
+                timestamp.textContent = getCurrentTime();
+                
+                messageElement.appendChild(timestamp);
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Função para adicionar mensagem da IA com efeito de digitação
+            function addAIMessageWithTypingEffect(message) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'ai-message');
+                
+                const messageContent = document.createElement('div');
+                messageElement.appendChild(messageContent);
+                
+                const timestamp = document.createElement('span');
+                timestamp.classList.add('message-time');
+                timestamp.textContent = getCurrentTime();
+                messageElement.appendChild(timestamp);
+                
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                let i = 0;
+                const speed = 40;
+                
+                function typeWriter() {
+                    if (i < message.length) {
+                        messageContent.innerHTML = message.substring(0, i + 1) + '<span class="cursor"></span>';
+                        i++;
+                        setTimeout(typeWriter, speed);
+                    } else {
+                        messageContent.innerHTML = message;
+                    }
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                
+                typeWriter();
+            }
+            
+            // Função para obter a hora atual formatada
+            function getCurrentTime() {
+                const now = new Date();
+                return now.getHours().toString().padStart(2, '0') + ':' + 
+                       now.getMinutes().toString().padStart(2, '0');
+            }
+            
+            // Função para simular o processamento da IA
+            function processUserInput() {
+                const message = userInput.textContent.trim();
+                if (message === '') return;
+                
+                addUserMessage(message);
+                userInput.textContent = '';
+                checkInput();
+                
+                // CRIAÇÃO DINÂMICA DO INDICADOR DE DIGITAÇÃO
+                const typingIndicator = document.createElement('div');
+                typingIndicator.classList.add('typing-indicator');
+                typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+                chatMessages.appendChild(typingIndicator);
+
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                setTimeout(() => {
+                    chatMessages.removeChild(typingIndicator);
+                    
+                    const response = generateRandomAu();
+                    addAIMessageWithTypingEffect(response);
+                }, 1000 + Math.random() * 1000);
+            }
+            
+            sendButton.addEventListener('click', processUserInput);
+            
+            userInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    processUserInput();
+                }
+            });
+            
+            // Scroll para o final da conversa quando o teclado é ativado
+            userInput.addEventListener('focus', () => {
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            });
+
+            // Focar no input quando clicar em qualquer área da conversa
+            chatMessages.addEventListener('click', function() {
+                userInput.focus();
+            });
+            
+            document.getElementById('timestamp').textContent = getCurrentTime();
+            
+            setInterval(() => {
+                statusIndicator.textContent = 'Online';
+                statusIndicator.style.color = '#667781';
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
